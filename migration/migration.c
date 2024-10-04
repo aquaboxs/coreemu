@@ -2771,7 +2771,36 @@ static void migration_completion(MigrationState *s)
     Error *local_err = NULL;
 
     if (s->state == MIGRATION_STATUS_ACTIVE) {
-        ret = migration_completion_precopy(s, &current_active_state);
+        qemu_mutex_lock_iothread();
+        s->downtime_start = qemu_clock_get_ms(QEMU_CLOCK_REALTIME);
+        qemu_system_wakeup_request(QEMU_WAKEUP_REASON_OTHER, NULL);
+        s->vm_was_running = runstate_is_running();
+        ret = global_state_store();
+
+        if (!ret) {
+            ret = vm_stop_force_state(RUN_STATE_FINISH_MIGRATE);
+            trace_migration_completion_vm_stop(ret);
+            if (ret >= 0) {
+                ret = migration_maybe_pause(s, &current_active_state,
+                                            MIGRATION_STATUS_DEVICE);
+            }
+            if (ret >= 0) {
+                /*
+                 * Inactivate disks except in COLO, and track that we
+                 * have done so in order to remember to reactivate
+                 * them if migration fails or is cancelled.
+                 */
+                s->block_inactive = !migrate_colo_enabled();
+                qemu_file_set_rate_limit(s->to_dst_file, INT64_MAX);
+                ret = qemu_savevm_state_complete_precopy(s->to_dst_file, false,
+                                                         s->block_inactive);
+            }
+        }
+        qemu_mutex_unlock_iothread();
+
+        if (ret < 0) {
+            goto fail;
+        }
     } else if (s->state == MIGRATION_STATUS_POSTCOPY_ACTIVE) {
         migration_completion_postcopy(s);
     } else {
@@ -2782,8 +2811,20 @@ static void migration_completion(MigrationState *s)
         goto fail;
     }
 
-    if (close_return_path_on_source(s)) {
-        goto fail;
+    /*
+     * If rp was opened we must clean up the thread before
+     * cleaning everything else up (since if there are no failures
+     * it will wait for the destination to send it's status in
+     * a SHUT command).
+     */
+    if (s->rp_state.rp_thread_created) {
+        int rp_error;
+        trace_migration_return_path_end_before();
+        rp_error = await_return_path_close_on_source(s);
+        trace_migration_return_path_end_after(rp_error);
+        if (rp_error) {
+            goto fail;
+        }
     }
 
     if (qemu_file_get_error(s->to_dst_file)) {
@@ -2802,16 +2843,26 @@ static void migration_completion(MigrationState *s)
     return;
 
 fail:
-    if (qemu_file_get_error_obj(s->to_dst_file, &local_err)) {
-        migrate_set_error(s, local_err);
-        error_free(local_err);
-    } else if (ret) {
-        error_setg_errno(&local_err, -ret, "Error in migration completion");
-        migrate_set_error(s, local_err);
-        error_free(local_err);
+    if (s->block_inactive && (s->state == MIGRATION_STATUS_ACTIVE ||
+                              s->state == MIGRATION_STATUS_DEVICE)) {
+        /*
+         * If not doing postcopy, vm_start() will be called: let's
+         * regain control on images.
+         */
+        Error *local_err = NULL;
+
+        qemu_mutex_lock_iothread();
+        bdrv_activate_all(&local_err);
+        if (local_err) {
+            error_report_err(local_err);
+        } else {
+            s->block_inactive = false;
+        }
+        qemu_mutex_unlock_iothread();
     }
 
-    migration_completion_failed(s, current_active_state);
+    migrate_set_state(&s->state, current_active_state,
+                      MIGRATION_STATUS_FAILED);
 }
 
 /**

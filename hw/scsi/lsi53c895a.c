@@ -1158,11 +1158,6 @@ static void lsi_execute_script(LSIState *s)
     int insn_processed = 0;
     static int reentrancy_level;
 
-    if (s->waiting == LSI_WAIT_SCRIPTS) {
-        timer_del(s->scripts_timer);
-        s->waiting = LSI_NOWAIT;
-    }
-
     reentrancy_level++;
 
     s->istat1 |= LSI_ISTAT1_SRUN;
@@ -1170,8 +1165,8 @@ again:
     /*
      * Some windows drivers make the device spin waiting for a memory location
      * to change. If we have executed more than LSI_MAX_INSN instructions then
-     * assume this is the case and start a timer. Until the timer fires, the
-     * host CPU has a chance to run and change the memory location.
+     * assume this is the case and force an unexpected device disconnect. This
+     * is apparently sufficient to beat the drivers into submission.
      *
      * Another issue (CVE-2023-0330) can occur if the script is programmed to
      * trigger itself again and again. Avoid this problem by stopping after
@@ -1179,9 +1174,13 @@ again:
      * which should be enough for all valid use cases).
      */
     if (++insn_processed > LSI_MAX_INSN || reentrancy_level > 8) {
-        s->waiting = LSI_WAIT_SCRIPTS;
-        lsi_scripts_timer_start(s);
-        reentrancy_level--;
+        if (!(s->sien0 & LSI_SIST0_UDC)) {
+            qemu_log_mask(LOG_GUEST_ERROR,
+                          "lsi_scsi: inf. loop with UDC masked");
+        }
+        lsi_script_scsi_interrupt(s, LSI_SIST0_UDC, 0);
+        lsi_disconnect(s);
+        trace_lsi_execute_script_stop();
         return;
     }
     insn = read_dword(s, s->dsp);

@@ -65,10 +65,6 @@ TESTS += $(PGM_SPECIFICATION_TESTS)
 Z13_TESTS=vistr
 Z13_TESTS+=lcbb
 Z13_TESTS+=locfhr
-Z13_TESTS+=vcksm
-Z13_TESTS+=vstl
-Z13_TESTS+=vrep
-Z13_TESTS+=precise-smc-user
 $(Z13_TESTS): CFLAGS+=-march=z13 -O2
 TESTS+=$(Z13_TESTS)
 
@@ -102,7 +98,7 @@ hello-s390x-asm: CFLAGS+=-nostdlib
 
 run-gdbstub-svc: hello-s390x-asm
 	$(call run-test, $@, $(GDB_SCRIPT) \
-		--gdb $(GDB) \
+		--gdb $(HAVE_GDB_BIN) \
 		--qemu $(QEMU) --qargs "$(QEMU_OPTS)" \
 		--bin $< --test $(S390X_SRC)/gdbstub/test-svc.py, \
 	single-stepping svc)

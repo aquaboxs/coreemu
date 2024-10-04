@@ -63,12 +63,8 @@ const int vdpa_feature_bits[] = {
     VIRTIO_F_RING_RESET,
     VIRTIO_F_VERSION_1,
     VIRTIO_NET_F_CSUM,
+    VIRTIO_NET_F_GUEST_CSUM,
     VIRTIO_NET_F_CTRL_GUEST_OFFLOADS,
-    VIRTIO_NET_F_CTRL_MAC_ADDR,
-    VIRTIO_NET_F_CTRL_RX,
-    VIRTIO_NET_F_CTRL_RX_EXTRA,
-    VIRTIO_NET_F_CTRL_VLAN,
-    VIRTIO_NET_F_CTRL_VQ,
     VIRTIO_NET_F_GSO,
     VIRTIO_NET_F_GUEST_CSUM,
     VIRTIO_NET_F_GUEST_ECN,
@@ -228,6 +224,11 @@ static void vhost_vdpa_cleanup(NetClientState *nc)
      */
     if (nc->peer && nc->peer->info->type == NET_CLIENT_DRIVER_NIC) {
         return;
+    }
+    qemu_vfree(s->cvq_cmd_out_buffer);
+    qemu_vfree(s->status);
+    if (dev->vq_index + dev->nvqs == dev->vq_index_end) {
+        g_clear_pointer(&s->vhost_vdpa.iova_tree, vhost_iova_tree_delete);
     }
     munmap(s->cvq_cmd_out_buffer, vhost_vdpa_net_cvq_cmd_page_len());
     munmap(s->status, vhost_vdpa_net_cvq_cmd_page_len());

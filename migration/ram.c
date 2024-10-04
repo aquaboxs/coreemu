@@ -1680,6 +1680,12 @@ int ram_write_tracking_start(void)
         memory_region_ref(block->mr);
 
         /* Apply UFFD write protection to the block memory range */
+        if (uffd_change_protection(rs->uffdio_fd, block->host,
+                block->max_length, true, false)) {
+            goto fail;
+        }
+
+        /* Apply UFFD write protection to the block memory range */
         if (ram_block_uffd_protect(block, uffd_fd)) {
             goto fail;
         }

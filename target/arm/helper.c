@@ -1917,15 +1917,6 @@ static void scr_write(CPUARMState *env, const ARMCPRegInfo *ri, uint64_t value)
         if (cpu_isar_feature(aa64_hcx, cpu)) {
             valid_mask |= SCR_HXEN;
         }
-        if (cpu_isar_feature(aa64_fgt, cpu)) {
-            valid_mask |= SCR_FGTEN;
-        }
-        if (cpu_isar_feature(aa64_rme, cpu)) {
-            valid_mask |= SCR_NSE | SCR_GPF;
-        }
-        if (cpu_isar_feature(aa64_ecv, cpu)) {
-            valid_mask |= SCR_ECVEN;
-        }
     } else {
         valid_mask &= ~(SCR_RW | SCR_ST);
         if (cpu_isar_feature(aa32_ras, cpu)) {

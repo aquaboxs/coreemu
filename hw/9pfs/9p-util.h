@@ -126,7 +126,7 @@ static inline int close_if_special_file(int fd)
 {
     struct stat stbuf;
 
-    if (qemu_fstat(fd, &stbuf) < 0) {
+    if (fstat(fd, &stbuf) < 0) {
         close_preserve_errno(fd);
         return -1;
     }

@@ -1138,14 +1138,10 @@ static void decode_opc(CPURISCVState *env, DisasContext *ctx, uint16_t opcode)
     ctx->virt_inst_excp = false;
     ctx->cur_insn_len = insn_len(opcode);
     /* Check for compressed insn */
-    if (ctx->cur_insn_len == 2) {
+    if (insn_len(opcode) == 2) {
         ctx->opcode = opcode;
-        /*
-         * The Zca extension is added as way to refer to instructions in the C
-         * extension that do not include the floating-point loads and stores
-         */
-        if ((has_ext(ctx, RVC) || ctx->cfg_ptr->ext_zca) &&
-            decode_insn16(ctx, opcode)) {
+        ctx->pc_succ_insn = ctx->base.pc_next + 2;
+        if (has_ext(ctx, RVC) && decode_insn16(ctx, opcode)) {
             return;
         }
     } else {

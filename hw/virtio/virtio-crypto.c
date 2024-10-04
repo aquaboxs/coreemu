@@ -486,7 +486,7 @@ static void virtio_crypto_free_request(VirtIOCryptoReq *req)
             memset(op_info, 0, sizeof(*op_info) + max_len);
             g_free(op_info);
         }
-    } else if (req->flags == QCRYPTODEV_BACKEND_ALG_ASYM) {
+    } else if (req->flags == CRYPTODEV_BACKEND_ALG_ASYM) {
         CryptoDevBackendAsymOpInfo *op_info = req->op_info.u.asym_op_info;
         if (op_info) {
             g_free(op_info->src);

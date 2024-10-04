@@ -1526,13 +1526,9 @@ void machine_run_board_init(MachineState *machine, const char *mem_path, Error *
                numa_uses_legacy_mem()) {
         if (object_property_find(object_get_objects_root(),
                                  machine_class->default_ram_id)) {
-            error_setg(errp, "object's id '%s' is reserved for the default"
-                " RAM backend, it can't be used for any other purposes",
-                machine_class->default_ram_id);
-            error_append_hint(errp,
-                "Change the object's 'id' to something else or disable"
-                " automatic creation of the default RAM backend by setting"
-                " 'memory-backend=%s' with '-machine'.\n",
+            error_setg(errp, "object name '%s' is reserved for the default"
+                " RAM backend, it can't be used for any other purposes."
+                " Change the object's 'id' to something else",
                 machine_class->default_ram_id);
             return;
         }

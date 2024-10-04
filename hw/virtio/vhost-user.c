@@ -1879,10 +1879,10 @@ static int vhost_setup_backend_channel(struct vhost_dev *dev)
         error_report_err(local_err);
         return -ECONNREFUSED;
     }
-    u->backend_ioc = ioc;
-    u->backend_src = qio_channel_add_watch_source(u->backend_ioc,
+    u->slave_ioc = ioc;
+    u->slave_src = qio_channel_add_watch_source(u->slave_ioc,
                                                 G_IO_IN | G_IO_HUP,
-                                                backend_read, dev, NULL, NULL);
+                                                slave_read, dev, NULL, NULL);
 
     if (reply_supported) {
         msg.hdr.flags |= VHOST_USER_NEED_REPLY_MASK;

@@ -196,9 +196,6 @@ static FWCfgState *create_fw_cfg(MachineState *ms, PCIBus *pci_bus,
     FWCfgState *fw_cfg;
     uint64_t val;
     const char qemu_version[] = QEMU_VERSION;
-    MachineClass *mc = MACHINE_GET_CLASS(ms);
-    int btlb_entries = HPPA_BTLB_ENTRIES(&cpu[0]->env);
-    int len;
 
     fw_cfg = fw_cfg_init_mem(addr, addr + 4);
     fw_cfg_add_i16(fw_cfg, FW_CFG_NB_CPUS, ms->smp.cpus);
@@ -237,10 +234,8 @@ static FWCfgState *create_fw_cfg(MachineState *ms, PCIBus *pci_bus,
     qemu_register_boot_set(fw_cfg_boot_set, fw_cfg);
 
     fw_cfg_add_file(fw_cfg, "/etc/qemu-version",
-                    g_memdup2(qemu_version, sizeof(qemu_version)),
+                    g_memdup(qemu_version, sizeof(qemu_version)),
                     sizeof(qemu_version));
-
-    fw_cfg_add_extra_pci_roots(pci_bus, fw_cfg);
 
     return fw_cfg;
 }

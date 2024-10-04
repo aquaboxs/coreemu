@@ -2479,7 +2479,13 @@ ARMSecuritySpace arm_security_space(CPUARMState *env);
  */
 static inline bool arm_is_secure(CPUARMState *env)
 {
-    return arm_space_is_secure(arm_security_space(env));
+    if (arm_feature(env, ARM_FEATURE_M)) {
+        return env->v7m.secure;
+    }
+    if (arm_is_el3_or_mon(env)) {
+        return true;
+    }
+    return arm_is_secure_below_el3(env);
 }
 
 /*

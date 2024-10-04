@@ -3217,9 +3217,8 @@ static void gen_lqarx(DisasContext *ctx)
     tcg_gen_extr_i128_i64(lo, hi, t16);
 
     tcg_gen_mov_tl(cpu_reserve, EA);
-    tcg_gen_movi_tl(cpu_reserve_length, 16);
-    tcg_gen_st_tl(hi, tcg_env, offsetof(CPUPPCState, reserve_val));
-    tcg_gen_st_tl(lo, tcg_env, offsetof(CPUPPCState, reserve_val2));
+    tcg_gen_st_tl(hi, cpu_env, offsetof(CPUPPCState, reserve_val));
+    tcg_gen_st_tl(lo, cpu_env, offsetof(CPUPPCState, reserve_val2));
 }
 
 /* stqcx. */

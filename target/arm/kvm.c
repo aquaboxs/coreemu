@@ -581,33 +581,7 @@ int kvm_arch_init(MachineState *ms, KVMState *s)
         }
     }
 
-    if (s->kvm_eager_split_size) {
-        uint32_t sizes;
-
-        sizes = kvm_vm_check_extension(s, KVM_CAP_ARM_SUPPORTED_BLOCK_SIZES);
-        if (!sizes) {
-            s->kvm_eager_split_size = 0;
-            warn_report("Eager Page Split support not available");
-        } else if (!(s->kvm_eager_split_size & sizes)) {
-            error_report("Eager Page Split requested chunk size not valid");
-            ret = -EINVAL;
-        } else {
-            ret = kvm_vm_enable_cap(s, KVM_CAP_ARM_EAGER_SPLIT_CHUNK_SIZE, 0,
-                                    s->kvm_eager_split_size);
-            if (ret < 0) {
-                error_report("Enabling of Eager Page Split failed: %s",
-                             strerror(-ret));
-            }
-        }
-    }
-
-    max_hw_wps = kvm_check_extension(s, KVM_CAP_GUEST_DEBUG_HW_WPS);
-    hw_watchpoints = g_array_sized_new(true, true,
-                                       sizeof(HWWatchpoint), max_hw_wps);
-
-    max_hw_bps = kvm_check_extension(s, KVM_CAP_GUEST_DEBUG_HW_BPS);
-    hw_breakpoints = g_array_sized_new(true, true,
-                                       sizeof(HWBreakpoint), max_hw_bps);
+    kvm_arm_init_debug(s);
 
     return ret;
 }
