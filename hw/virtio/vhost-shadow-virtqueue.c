@@ -525,8 +525,8 @@ static void vhost_svq_flush(VhostShadowVirtqueue *svq,
  */
 size_t vhost_svq_poll(VhostShadowVirtqueue *svq, size_t num)
 {
-    size_t len = 0;
-    uint32_t r;
+    int64_t start_us = g_get_monotonic_time();
+    uint32_t len = 0;
 
     while (num--) {
         int64_t start_us = g_get_monotonic_time();
@@ -670,9 +670,9 @@ void vhost_svq_start(VhostShadowVirtqueue *svq, VirtIODevice *vdev,
 
     svq->vring.num = virtio_queue_get_num(vdev, virtio_get_queue_index(vq));
     svq->num_free = svq->vring.num;
-    svq->vring.desc = mmap(NULL, vhost_svq_driver_area_size(svq),
-                           PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS,
-                           -1, 0);
+    driver_size = vhost_svq_driver_area_size(svq);
+    device_size = vhost_svq_device_area_size(svq);
+    svq->vring.desc = qemu_memalign(qemu_real_host_page_size(), driver_size);
     desc_size = sizeof(vring_desc_t) * svq->vring.num;
     svq->vring.avail = (void *)((char *)svq->vring.desc + desc_size);
     svq->vring.used = mmap(NULL, vhost_svq_device_area_size(svq),

@@ -119,12 +119,6 @@ struct PCMachineClass {
 
     /* create kvmclock device even when KVM PV features are not exposed */
     bool kvmclock_create_always;
-
-    /*
-     * whether the machine type implements broken 32-bit address space bound
-     * check for memory.
-     */
-    bool broken_32bit_mem_addr_check;
 };
 
 #define TYPE_PC_MACHINE "generic-pc-machine"

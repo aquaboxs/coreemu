@@ -11847,7 +11847,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
             g_autofree gid_t *grouplist = NULL;
             int i;
 
-            if (gidsetsize > NGROUPS_MAX || gidsetsize < 0) {
+            if (gidsetsize > NGROUPS_MAX) {
                 return -TARGET_EINVAL;
             }
             if (gidsetsize > 0) {
@@ -12183,7 +12183,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
             g_autofree gid_t *grouplist = NULL;
             int i;
 
-            if (gidsetsize > NGROUPS_MAX || gidsetsize < 0) {
+            if (gidsetsize > NGROUPS_MAX) {
                 return -TARGET_EINVAL;
             }
             if (gidsetsize > 0) {
@@ -12233,7 +12233,7 @@ static abi_long do_syscall1(CPUArchState *cpu_env, int num, abi_long arg1,
                 }
                 unlock_user(target_grouplist, arg2, 0);
             }
-            return get_errno(sys_setgroups(gidsetsize, grouplist));
+            return get_errno(setgroups(gidsetsize, grouplist));
         }
 #endif
 #ifdef TARGET_NR_fchown32

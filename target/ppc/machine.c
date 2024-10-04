@@ -322,18 +322,7 @@ static int cpu_post_load(void *opaque, int version_id)
     post_load_update_msr(env);
 
     if (tcg_enabled()) {
-        /* Re-set breaks based on regs */
-#if defined(TARGET_PPC64)
-        ppc_update_ciabr(env);
-        ppc_update_daw0(env);
-#endif
-        /*
-         * TCG needs to re-start the decrementer timer and/or raise the
-         * interrupt. This works for level-triggered decrementer. Edge
-         * triggered types (including HDEC) would need to carry more state.
-         */
-        cpu_ppc_store_decr(env, env->spr[SPR_DECR]);
-        pmu_mmcr01a_updated(env);
+        pmu_mmcr01_updated(env);
     }
 
     return 0;

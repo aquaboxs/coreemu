@@ -357,9 +357,9 @@ static void xen_9pfs_disconnect(struct XenLegacyDevice *xendev)
             xen_9pdev->rings[i].data = NULL;
         }
         if (xen_9pdev->rings[i].intf != NULL) {
-            xen_be_unmap_grant_ref(&xen_9pdev->xendev,
-                                   xen_9pdev->rings[i].intf,
-                                   xen_9pdev->rings[i].ref);
+            xen_be_unmap_grant_refs(&xen_9pdev->xendev,
+                                    xen_9pdev->rings[i].intf,
+                                    1);
             xen_9pdev->rings[i].intf = NULL;
         }
         if (xen_9pdev->rings[i].bh != NULL) {

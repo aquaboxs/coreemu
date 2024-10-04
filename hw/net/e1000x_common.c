@@ -258,21 +258,8 @@ e1000x_update_rx_total_stats(uint32_t *mac,
     * Address> field through the <CRC> field, inclusively.
     * Always include FCS length (4) in size.
     */
-    e1000x_grow_8reg_if_not_full(mac, TORL, pkt_size + 4);
-    e1000x_grow_8reg_if_not_full(mac, GORCL, pkt_size + 4);
-
-    switch (pkt_type) {
-    case ETH_PKT_BCAST:
-        e1000x_inc_reg_if_not_full(mac, BPRC);
-        break;
-
-    case ETH_PKT_MCAST:
-        e1000x_inc_reg_if_not_full(mac, MPRC);
-        break;
-
-    default:
-        break;
-    }
+    e1000x_grow_8reg_if_not_full(mac, TORL, data_size + 4);
+    e1000x_grow_8reg_if_not_full(mac, GORCL, data_size + 4);
 }
 
 void

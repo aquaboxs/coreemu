@@ -13,7 +13,7 @@ config-cc.mak: Makefile
 
 I386_SRCS=$(notdir $(wildcard $(I386_SRC)/*.c))
 ALL_X86_TESTS=$(I386_SRCS:.c=)
-SKIP_I386_TESTS=test-i386-ssse3 test-avx test-3dnow test-mmx test-flags
+SKIP_I386_TESTS=test-i386-ssse3 test-avx test-3dnow test-mmx
 X86_64_TESTS:=$(filter test-i386-adcox test-i386-bmi2 $(SKIP_I386_TESTS), $(ALL_X86_TESTS))
 
 test-i386-sse-exceptions: CFLAGS += -msse4.1 -mfpmath=sse
@@ -31,6 +31,10 @@ run-test-i386-adcox: QEMU_OPTS += -cpu max
 test-aes: CFLAGS += -O -msse2 -maes
 test-aes: test-aes-main.c.inc
 run-test-aes: QEMU_OPTS += -cpu max
+
+test-i386-adcox: CFLAGS=-O2
+run-test-i386-adcox: QEMU_OPTS += -cpu max
+run-plugin-test-i386-adcox-%: QEMU_OPTS += -cpu max
 
 #
 # hello-i386 is a barebones app

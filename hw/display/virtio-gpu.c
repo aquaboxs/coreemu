@@ -509,7 +509,7 @@ static void virtio_gpu_resource_flush(VirtIOGPU *g,
     struct virtio_gpu_simple_resource *res;
     struct virtio_gpu_resource_flush rf;
     struct virtio_gpu_scanout *scanout;
-    QemuRect flush_rect;
+    pixman_region16_t flush_region;
     bool within_bounds = false;
     bool update_submitted = false;
     int i;

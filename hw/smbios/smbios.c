@@ -713,7 +713,7 @@ static void smbios_build_type_4_table(MachineState *ms, unsigned instance,
     t->core_count = (cores_per_socket > 255) ? 0xFF : cores_per_socket;
     t->core_enabled = t->core_count;
 
-    t->thread_count = (threads_per_socket > 255) ? 0xFF : threads_per_socket;
+    t->thread_count = (ms->smp.threads > 255) ? 0xFF : ms->smp.threads;
 
     t->processor_characteristics = cpu_to_le16(0x02); /* Unknown */
     t->processor_family2 = cpu_to_le16(type4.processor_family);
@@ -727,6 +727,11 @@ static void smbios_build_type_4_table(MachineState *ms, unsigned instance,
                          "-machine smbios-entry-point-type=64 option to enable "
                          "SMBIOS 3.0 support");
         return;
+    }
+
+    if (tbl_len == SMBIOS_TYPE_4_LEN_V30) {
+        t->core_count2 = t->core_enabled2 = cpu_to_le16(ms->smp.cores);
+        t->thread_count2 = cpu_to_le16(ms->smp.threads);
     }
 
     SMBIOS_BUILD_TABLE_POST;

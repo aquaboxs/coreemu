@@ -75,10 +75,9 @@ qio_channel_tls_new_server(QIOChannel *master,
     tioc = QIO_CHANNEL_TLS(object_new(TYPE_QIO_CHANNEL_TLS));
     ioc = QIO_CHANNEL(tioc);
 
-    tioc->master = master;
-    ioc->follow_coroutine_ctx = master->follow_coroutine_ctx;
+    ioc->master = master;
     if (qio_channel_has_feature(master, QIO_CHANNEL_FEATURE_SHUTDOWN)) {
-        qio_channel_set_feature(ioc, QIO_CHANNEL_FEATURE_SHUTDOWN);
+        qio_channel_set_feature(QIO_CHANNEL(ioc), QIO_CHANNEL_FEATURE_SHUTDOWN);
     }
     object_ref(OBJECT(master));
 

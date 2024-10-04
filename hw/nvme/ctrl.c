@@ -1468,18 +1468,22 @@ static inline void nvme_blk_write(BlockBackend *blk, int64_t offset,
 
 static void nvme_update_cq_eventidx(const NvmeCQueue *cq)
 {
-    trace_pci_nvme_update_cq_eventidx(cq->cqid, cq->head);
+    uint32_t v = cpu_to_le32(cq->head);
 
-    stl_le_pci_dma(PCI_DEVICE(cq->ctrl), cq->ei_addr, cq->head,
-                   MEMTXATTRS_UNSPECIFIED);
+    //not in 7.2: trace_pci_nvme_update_cq_eventidx(cq->cqid, cq->head);
+
+    pci_dma_write(PCI_DEVICE(cq->ctrl), cq->ei_addr, &v, sizeof(v));
 }
 
 static void nvme_update_cq_head(NvmeCQueue *cq)
 {
-    ldl_le_pci_dma(PCI_DEVICE(cq->ctrl), cq->db_addr, &cq->head,
-                   MEMTXATTRS_UNSPECIFIED);
+    uint32_t v;
 
-    trace_pci_nvme_update_cq_head(cq->cqid, cq->head);
+    pci_dma_read(&cq->ctrl->parent_obj, cq->db_addr, &v, sizeof(v));
+
+    cq->head = le32_to_cpu(v);
+
+    trace_pci_nvme_shadow_doorbell_cq(cq->cqid, cq->head);
 }
 
 static void nvme_post_cqes(void *opaque)
@@ -6989,18 +6993,22 @@ static uint16_t nvme_admin_cmd(NvmeCtrl *n, NvmeRequest *req)
 
 static void nvme_update_sq_eventidx(const NvmeSQueue *sq)
 {
-    trace_pci_nvme_update_sq_eventidx(sq->sqid, sq->tail);
+    uint32_t v = cpu_to_le32(sq->tail);
 
-    stl_le_pci_dma(PCI_DEVICE(sq->ctrl), sq->ei_addr, sq->tail,
-                   MEMTXATTRS_UNSPECIFIED);
+    pci_dma_write(&sq->ctrl->parent_obj, sq->ei_addr, &v, sizeof(v));
+
+    trace_pci_nvme_eventidx_sq(sq->sqid, sq->tail);
 }
 
 static void nvme_update_sq_tail(NvmeSQueue *sq)
 {
-    ldl_le_pci_dma(PCI_DEVICE(sq->ctrl), sq->db_addr, &sq->tail,
-                   MEMTXATTRS_UNSPECIFIED);
+    uint32_t v;
 
-    trace_pci_nvme_update_sq_tail(sq->sqid, sq->tail);
+    pci_dma_read(&sq->ctrl->parent_obj, sq->db_addr, &v, sizeof(v));
+
+    sq->tail = le32_to_cpu(v);
+
+    trace_pci_nvme_shadow_doorbell_sq(sq->sqid, sq->tail);
 }
 
 static void nvme_process_sq(void *opaque)

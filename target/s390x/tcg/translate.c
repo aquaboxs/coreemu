@@ -1449,7 +1449,7 @@ static DisasJumpType op_bal(DisasContext *s, DisasOps *o)
     if (have_field(s, ri)) {                                                   \
         if (unlikely(s->ex_value)) {                                           \
             cdest = tcg_temp_new_i64();                                        \
-            tcg_gen_ld_i64(cdest, tcg_env, offsetof(CPUS390XState, ex_target));\
+            tcg_gen_ld_i64(cdest, cpu_env, offsetof(CPUS390XState, ex_target));\
             tcg_gen_addi_i64(cdest, cdest, (int64_t)get_field(s, ri) * 2);     \
             is_imm = false;                                                    \
         } else {                                                               \
@@ -5755,7 +5755,7 @@ static TCGv gen_ri2(DisasContext *s)
 
     disas_jdest(s, i2, is_imm, imm, ri2);
     if (is_imm) {
-        ri2 = tcg_constant_i64(s->base.pc_next + (int64_t)imm * 2);
+        ri2 = tcg_constant_i64(s->base.pc_next + imm * 2);
     }
 
     return ri2;
@@ -5852,38 +5852,35 @@ static void in2_m2_64a(DisasContext *s, DisasOps *o)
 static void in2_mri2_16s(DisasContext *s, DisasOps *o)
 {
     o->in2 = tcg_temp_new_i64();
-    tcg_gen_qemu_ld_i64(o->in2, gen_ri2(s), get_mem_index(s), MO_TESW);
+    tcg_gen_qemu_ld16s(o->in2, gen_ri2(s), get_mem_index(s));
 }
 #define SPEC_in2_mri2_16s 0
 
 static void in2_mri2_16u(DisasContext *s, DisasOps *o)
 {
     o->in2 = tcg_temp_new_i64();
-    tcg_gen_qemu_ld_i64(o->in2, gen_ri2(s), get_mem_index(s), MO_TEUW);
+    tcg_gen_qemu_ld16u(o->in2, gen_ri2(s), get_mem_index(s));
 }
 #define SPEC_in2_mri2_16u 0
 
 static void in2_mri2_32s(DisasContext *s, DisasOps *o)
 {
     o->in2 = tcg_temp_new_i64();
-    tcg_gen_qemu_ld_tl(o->in2, gen_ri2(s), get_mem_index(s),
-                       MO_TESL | MO_ALIGN);
+    tcg_gen_qemu_ld32s(o->in2, gen_ri2(s), get_mem_index(s));
 }
 #define SPEC_in2_mri2_32s 0
 
 static void in2_mri2_32u(DisasContext *s, DisasOps *o)
 {
     o->in2 = tcg_temp_new_i64();
-    tcg_gen_qemu_ld_tl(o->in2, gen_ri2(s), get_mem_index(s),
-                       MO_TEUL | MO_ALIGN);
+    tcg_gen_qemu_ld32u(o->in2, gen_ri2(s), get_mem_index(s));
 }
 #define SPEC_in2_mri2_32u 0
 
 static void in2_mri2_64(DisasContext *s, DisasOps *o)
 {
     o->in2 = tcg_temp_new_i64();
-    tcg_gen_qemu_ld_i64(o->in2, gen_ri2(s), get_mem_index(s),
-                        MO_TEUQ | MO_ALIGN);
+    tcg_gen_qemu_ld64(o->in2, gen_ri2(s), get_mem_index(s));
 }
 #define SPEC_in2_mri2_64 0
 

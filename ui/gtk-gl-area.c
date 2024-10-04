@@ -313,13 +313,10 @@ void gd_gl_area_scanout_dmabuf(DisplayChangeListener *dcl,
         return;
     }
 
-    x = qemu_dmabuf_get_x(dmabuf);
-    y = qemu_dmabuf_get_y(dmabuf);
-    width = qemu_dmabuf_get_width(dmabuf);
-    height = qemu_dmabuf_get_height(dmabuf);
-    backing_width = qemu_dmabuf_get_backing_width(dmabuf);
-    backing_height = qemu_dmabuf_get_backing_height(dmabuf);
-    y0_top = qemu_dmabuf_get_y0_top(dmabuf);
+    gd_gl_area_scanout_texture(dcl, dmabuf->texture,
+                               dmabuf->y0_top, dmabuf->width, dmabuf->height,
+                               dmabuf->x, dmabuf->y, dmabuf->scanout_width,
+                               dmabuf->scanout_height);
 
     gd_gl_area_scanout_texture(dcl, texture, y0_top,
                                backing_width, backing_height,
